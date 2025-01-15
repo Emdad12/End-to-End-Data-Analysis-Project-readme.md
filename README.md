@@ -28,7 +28,7 @@ The primary objective of this project is to demonstrate the process of performin
 
  - Source: Kaggle
 
- - Dataset Name: [Insert Dataset Name Here]
+ - Dataset Name: [Retail Orders]
 
 # Key Features:
 - order_id: Unique identifier for each order.
@@ -184,7 +184,8 @@ with cte as
 
 Project Highlights
 
-Learning Experience: This project was inspired by a [YouTube tutorial](insert link) where the original implementation used SQL Server. In this adaptation, I used MySQL Workbench.
+Learning Experience: This project was inspired by a **Ankit Bansal**
+[(youtubelink)](https://www.youtube.com/@ankitbansal6) where the original implementation used SQL Server. In this adaptation, I used MySQL Workbench.
 
 Hands-On Practice: It provided valuable experience in data cleaning, SQL querying, and integrating Python with MySQL.
 
@@ -192,8 +193,9 @@ Adaptation: Modified the approach to suit the MySQL platform while replicating t
 
 Disclaimer
 
-This project is not original work. It is adapted from a [YouTube tutorial](insert link) for learning purposes. The modifications, including using MySQL Workbench and additional analysis, were performed independently.
+This project is not original work. It is adapted from a  **Ankit Bansal**
+[(youtubelink)](https://www.youtube.com/@ankitbansal6) for learning purposes. The modifications, including using MySQL Workbench and additional analysis, were performed independently.
 
 Acknowledgments
 
-Special thanks to [YouTube Channel Name](insert link) for the detailed tutorial that inspired this project.
+Special thanks to  **Ankit Bansal** for the detailed tutorial that inspired this project.
