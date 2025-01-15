@@ -104,56 +104,83 @@ df['order_date']=pd.to_datetime(df['order_date'],format='%Y-%m-%d')
 Step 3: Connecting Python to MySQL Workbench
 
 The cleaned dataset was uploaded to MySQL Workbench using the mysql.connector library. Below is the Python script used for the connection and data insertion:
-
+```py
+!pip install pymysql
+!pip install sqlalchemy pymysql pandas
 import mysql.connector
+
+# Establish connection to MySQL
 from sqlalchemy import create_engine
 
-# MySQL connection
-connection = mysql.connector.connect(
-    host='localhost',
-    user='your_username',
-    password='your_password',
-    database='your_database'
-)
+engine = create_engine("mysql+pymysql://root:1234@localhost/my_database")
+df.to_sql(name='df_orders',con=engine,index=False, if_exists='append')
 
-# Uploading the data
-df.to_sql('df_orders', con=create_engine('mysql+mysqlconnector://your_username:your_password@localhost/your_database'),
-          index=False, if_exists='replace')
-
-Step 4: SQL Analysis
+**Step 4**: SQL Analysis
 
 SQL queries were written to answer various business questions. Examples include:
 
-Query 1: Top 5 Highest-Selling Products in Each Region
-
-SELECT region, product_id, SUM(sale_price) AS total_sales
-FROM df_orders
-GROUP BY region, product_id
-ORDER BY region, total_sales DESC
-LIMIT 5;
-
-Query 2: Highest Sales by Category Each Month
-
-WITH cte AS (
-    SELECT category, DATE_FORMAT(order_date, '%Y-%m') AS order_month, SUM(sale_price) AS total_sales
-    FROM df_orders
-    GROUP BY category, DATE_FORMAT(order_date, '%Y-%m')
-)
-SELECT category, order_month, total_sales
-FROM (
-    SELECT category, order_month, total_sales,
-           RANK() OVER (PARTITION BY category ORDER BY total_sales DESC) AS rank
-    FROM cte
-) ranked_sales
-WHERE rank = 1;
-
-Results and Insights
-
-Top-Selling Products: Identified the highest revenue-generating products in each region.
-
-Seasonal Trends: Determined monthly sales trends for each category.
-
-Profitability: Gained insights into which product categories yielded the highest profits.
+- Query 1: find top 10 highest revenue generating products
+```sql
+ SELECT product_id,ROUND(sum(sale_price)) AS Revenue
+ FROM df_orders
+ GROUP BY product_id
+ ORDER BY Revenue DESC
+ LIMIT 10;
+```
+ - Query 2: find top 5 highest selling product in each region
+```sql
+ WITH cte AS (SELECT region,ROUND(sum(sale_price)) AS Sales
+ FROM df_orders
+ GROUP BY region,product_id)
+ SELECT * 
+ FROM ( SELECT * ,
+ RANK() OVER(PARTITION BY region ORDER BY Sales DESC) AS ranks
+ FROM cte) AS A
+ WHERE ranks<=5;
+```
+ - Query 3: find month over month growth comparision for 2022 and 2023 sales eg:jan 2022 vs jan 2023
+ 
+ ```sql
+ with cte as 
+ (select year(order_date) as order_year,month(order_date) as order_month,sum(sale_price) as sales
+ from df_orders
+ GROUP BY order_year,order_month)
+ Select  order_month,
+ sum(case when order_year=2022 then sales else 0 end) as sales_2022,
+ sum(case when order_year=2023 then sales else 0 end) as sales_2023
+ from cte
+ group by order_month
+ order by order_month;
+ ```
+- Query 4:for each category which month has highest sales
+ ```sql  
+ with cte as (select category,DATE_FORMAT(order_date, '%Y%m') as order_year_month,sum(sale_price)as total_sales
+ from df_orders
+ group by category,DATE_FORMAT(order_date, '%Y%m')
+ )
+ select * from
+ (select *,
+ rank() over(partition by category order by total_sales desc)as ranks
+ from cte)as a
+ where ranks=1;
+```
+ - Query 5: which sub category had highest growth by profit in 2023 compare to 2022
+```sql
+with cte as 
+ (select sub_category,year(order_date) as order_year,sum(sale_price) as sales
+ from df_orders
+ GROUP BY sub_category,year(order_date)),
+ cte2 as(
+ Select  sub_category,
+ sum(case when order_year=2022 then sales else 0 end) as sales_2022,
+ sum(case when order_year=2023 then sales else 0 end) as sales_2023
+ from cte
+ group by sub_category)
+ select *,(sales_2023-sales_2022)*100/(sales_2022)as sales_growth
+ from cte2
+ order by sales_growth desc
+ limit 1;
+```
 
 Project Highlights
 
